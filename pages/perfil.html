@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perfil — Neuronix</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="nav-brand" href="dashboard.html">Neuro<span>nix</span></a>
+  <div class="nav-links">
+    <a href="dashboard.html">📊 Dashboard</a>
+    <a href="habitos.html">🔥 Hábitos</a>
+    <a href="pomodoro.html">🍅 Pomodoro</a>
+    <a href="metas.html">🎯 Metas</a>
+    <a href="notas.html">📝 Notas</a>
+    <a href="perfil.html" class="active">👤 Perfil</a>
+  </div>
+  <div class="nav-user">
+    <div class="user-info"><strong id="user-nombre">—</strong></div>
+    <button id="btn-logout" class="btn-logout">Salir</button>
+  </div>
+</nav>
+
+<div id="toast-container"></div>
+
+<div class="page-wrapper">
+  <h1 class="page-title">Mi <span style="color:var(--cyan)">Perfil</span></h1>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start">
+
+    <!-- Info y edición -->
+    <div style="display:flex;flex-direction:column;gap:1.5rem">
+
+      <!-- Avatar y stats -->
+      <div class="card" style="text-align:center">
+        <div id="perfil-avatar" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#fff;margin:0 auto 1rem">
+          ?
+        </div>
+        <h2 id="perfil-nombre" style="font-family:var(--font-head);font-size:1.5rem">—</h2>
+        <p id="perfil-email" style="color:var(--text-m);font-size:0.85rem;margin-top:0.25rem">—</p>
+        <div style="display:flex;justify-content:center;gap:2rem;margin-top:1.5rem">
+          <div style="text-align:center">
+            <div id="perfil-puntos" style="font-family:var(--font-mono);font-size:1.5rem;font-weight:700;color:var(--lime)">0</div>
+            <div style="font-size:0.75rem;color:var(--text-m)">Puntos</div>
+          </div>
+          <div style="text-align:center">
+            <div id="perfil-racha" style="font-family:var(--font-mono);font-size:1.5rem;font-weight:700;color:var(--orange)">0</div>
+            <div style="font-size:0.75rem;color:var(--text-m)">Racha actual</div>
+          </div>
+          <div style="text-align:center">
+            <div id="perfil-racha-max" style="font-family:var(--font-mono);font-size:1.5rem;font-weight:700;color:var(--purple-l)">0</div>
+            <div style="font-size:0.75rem;color:var(--text-m)">Racha máx.</div>
+          </div>
+        </div>
+        <div style="margin-top:1rem">
+          <span id="perfil-nivel" style="background:rgba(108,99,255,0.2);color:var(--purple-l);padding:0.3rem 1rem;border-radius:20px;font-size:0.8rem;font-weight:600">
+            principiante
+          </span>
+        </div>
+      </div>
+
+      <!-- Editar perfil -->
+      <div class="card">
+        <h3 style="margin-bottom:1.25rem;font-size:0.9rem;color:var(--text-m);text-transform:uppercase;letter-spacing:1px">Editar perfil</h3>
+        <form id="form-perfil">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div class="form-group">
+              <label>Nombre</label>
+              <input id="edit-nombre" type="text" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <label>Apellido</label>
+              <input id="edit-apellido" type="text" class="form-control" required />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">
+            Guardar cambios
+          </button>
+        </form>
+      </div>
+
+      <!-- Cambiar contraseña -->
+      <div class="card">
+        <h3 style="margin-bottom:1.25rem;font-size:0.9rem;color:var(--text-m);text-transform:uppercase;letter-spacing:1px">Cambiar contraseña</h3>
+        <form id="form-password">
+          <div class="form-group">
+            <label>Contraseña actual</label>
+            <input id="pwd-actual" type="password" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>Nueva contraseña</label>
+            <input id="pwd-nueva" type="password" class="form-control" required minlength="8" />
+          </div>
+          <button type="submit" class="btn btn-secondary" style="width:100%;justify-content:center">
+            Actualizar contraseña
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Logros -->
+    <div class="card">
+      <h3 style="margin-bottom:1.5rem">🏆 Mis logros</h3>
+      <div id="logros-container" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:1rem">
+        <div class="empty-state"><span>⏳</span><p>Cargando...</p></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/auth.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!isLoggedIn()) return window.location.href = '/index.html';
+
+  try {
+    const { usuario, logros } = await apiFetch('/users/perfil');
+
+    document.getElementById('user-nombre').textContent = usuario.nombre;
+    document.getElementById('perfil-avatar').textContent = usuario.nombre[0] + usuario.apellido[0];
+    document.getElementById('perfil-nombre').textContent = `${usuario.nombre} ${usuario.apellido}`;
+    document.getElementById('perfil-email').textContent = usuario.email;
+    document.getElementById('perfil-puntos').textContent = usuario.puntos_totales || 0;
+    document.getElementById('perfil-racha').textContent = usuario.racha_actual || 0;
+    document.getElementById('perfil-racha-max').textContent = usuario.racha_maxima || 0;
+    document.getElementById('perfil-nivel').textContent = `⭐ ${usuario.nivel}`;
+    document.getElementById('edit-nombre').value = usuario.nombre;
+    document.getElementById('edit-apellido').value = usuario.apellido;
+
+    renderLogros(logros);
+  } catch (e) { toast(e.message, 'error'); }
+
+  document.getElementById('form-perfil').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const data = await apiFetch('/users/perfil', {
+        method: 'PUT',
+        body: JSON.stringify({
+          nombre: document.getElementById('edit-nombre').value,
+          apellido: document.getElementById('edit-apellido').value,
+        })
+      });
+      setUser(data.usuario);
+      toast('✅ Perfil actualizado');
+    } catch (err) { toast(err.message, 'error'); }
+  });
+
+  document.getElementById('form-password').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      await apiFetch('/auth/update-password', {
+        method: 'PUT',
+        body: JSON.stringify({
+          passwordActual: document.getElementById('pwd-actual').value,
+          passwordNuevo: document.getElementById('pwd-nueva').value,
+        })
+      });
+      toast('✅ Contraseña actualizada');
+      e.target.reset();
+    } catch (err) { toast(err.message, 'error'); }
+  });
+});
+
+function renderLogros(logros) {
+  const c = document.getElementById('logros-container');
+  if (!logros.length) {
+    c.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><span>🏅</span><p>Aún no tienes logros. ¡Sigue estudiando!</p></div>`;
+    return;
+  }
+  c.innerHTML = logros.map(l => {
+    const a = l.achievements;
+    return `
+    <div style="text-align:center;padding:1rem;background:var(--bg3);border-radius:var(--radius-s);border:1px solid var(--border2)" title="${a.descripcion}">
+      <div style="font-size:2rem">${a.icono}</div>
+      <div style="font-size:0.75rem;font-weight:600;margin-top:0.4rem">${a.nombre}</div>
+      <div style="font-size:0.65rem;color:var(--lime);font-family:var(--font-mono)">+${a.puntos}pts</div>
+    </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>

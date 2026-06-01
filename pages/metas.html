@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Metas — Neuronix</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="nav-brand" href="dashboard.html">Neuro<span>nix</span></a>
+  <div class="nav-links">
+    <a href="dashboard.html">📊 Dashboard</a>
+    <a href="habitos.html">🔥 Hábitos</a>
+    <a href="pomodoro.html">🍅 Pomodoro</a>
+    <a href="metas.html" class="active">🎯 Metas</a>
+    <a href="notas.html">📝 Notas</a>
+    <a href="perfil.html">👤 Perfil</a>
+  </div>
+  <div class="nav-user">
+    <div class="user-info"><strong id="user-nombre">—</strong></div>
+    <button id="btn-logout" class="btn-logout">Salir</button>
+  </div>
+</nav>
+
+<div id="toast-container"></div>
+
+<!-- Modal nueva meta -->
+<div id="modal-meta" class="modal-overlay">
+  <div class="modal">
+    <h2>🎯 Nueva meta</h2>
+    <form id="form-meta">
+      <div class="form-group">
+        <label>Título *</label>
+        <input id="meta-titulo" type="text" class="form-control" placeholder="Ej: Aprobar Cálculo con 9" required />
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea id="meta-desc" class="form-control" rows="3" placeholder="¿Qué quieres lograr?"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="form-group">
+          <label>Categoría</label>
+          <select id="meta-cat" class="form-control">
+            <option value="">-- Sin categoría</option>
+            <option>Académico</option>
+            <option>Idiomas</option>
+            <option>Salud</option>
+            <option>Personal</option>
+            <option>Tecnología</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Prioridad</label>
+          <select id="meta-prioridad" class="form-control">
+            <option value="baja">Baja</option>
+            <option value="media" selected>Media</option>
+            <option value="alta">Alta</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Fecha límite</label>
+        <input id="meta-fecha" type="date" class="form-control" />
+      </div>
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end">
+        <button type="button" id="btn-cerrar-modal" class="btn btn-secondary">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Crear meta</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="page-wrapper">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2rem;flex-wrap:wrap;gap:1rem">
+    <div>
+      <h1 class="page-title">Mis <span style="color:var(--cyan)">Metas</span></h1>
+      <p class="page-subtitle" style="margin:0">Define tus objetivos y da seguimiento a tu progreso.</p>
+    </div>
+    <button id="btn-nueva-meta" class="btn btn-primary">+ Nueva meta</button>
+  </div>
+
+  <div id="metas-container" class="metas-grid">
+    <div class="empty-state"><span>⏳</span><p>Cargando metas...</p></div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/metas.js"></script>
+</body>
+</html>

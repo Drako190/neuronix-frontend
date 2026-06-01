@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Neuronix</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a class="nav-brand" href="dashboard.html">Neuro<span>nix</span></a>
+  <div class="nav-links">
+    <a href="dashboard.html" class="active">📊 Dashboard</a>
+    <a href="habitos.html">🔥 Hábitos</a>
+    <a href="pomodoro.html">🍅 Pomodoro</a>
+    <a href="metas.html">🎯 Metas</a>
+    <a href="notas.html">📝 Notas</a>
+    <a href="perfil.html">👤 Perfil</a>
+  </div>
+  <div class="nav-user">
+    <div class="user-info">
+      <strong id="user-nombre">—</strong>
+      <span id="user-puntos">0 pts</span>
+    </div>
+    <button id="btn-logout" class="btn-logout">Salir</button>
+  </div>
+</nav>
+
+<div id="toast-container"></div>
+
+<div class="page-wrapper">
+  <h1 class="page-title">¡Hola, <span id="dash-nombre" style="color:var(--cyan)">estudiante</span>! 👋</h1>
+  <p class="page-subtitle">Aquí está tu resumen de hoy.</p>
+
+  <!-- Stats cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-icon">✨</span>
+      <div class="stat-value" id="stat-puntos">0</div>
+      <div class="stat-label">Puntos totales</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">🔥</span>
+      <div class="stat-value" id="stat-racha">0</div>
+      <div class="stat-label">Días de racha</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">✅</span>
+      <div class="stat-value" id="stat-completados-hoy">0</div>
+      <div class="stat-label">Hábitos hoy</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">🍅</span>
+      <div class="stat-value" id="stat-pomodoros">0</div>
+      <div class="stat-label">Pomodoros semana</div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <!-- Columna principal -->
+    <div class="dashboard-main">
+
+      <!-- Hábitos de hoy -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+          <h2 class="section-title" style="margin:0">Hábitos de hoy</h2>
+          <a href="habitos.html" class="btn btn-secondary" style="font-size:0.82rem;padding:0.4rem 0.9rem">Ver todos</a>
+        </div>
+        <div id="habitos-hoy" style="display:flex;flex-direction:column;gap:0.6rem">
+          <div class="empty-state"><span>⏳</span><p>Cargando hábitos...</p></div>
+        </div>
+      </div>
+
+      <!-- Gráfica semanal -->
+      <div class="card">
+        <h2 class="section-title" style="margin-bottom:1.25rem">Actividad esta semana</h2>
+        <div id="grafica-semana" class="bar-chart"></div>
+      </div>
+
+    </div>
+
+    <!-- Columna lateral -->
+    <div class="dashboard-side">
+
+      <!-- Accesos rápidos -->
+      <div class="card">
+        <h3 style="margin-bottom:1rem;font-size:0.9rem;color:var(--text-m);text-transform:uppercase;letter-spacing:1px">Accesos rápidos</h3>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <a href="pomodoro.html" class="btn btn-primary" style="justify-content:center">🍅 Iniciar Pomodoro</a>
+          <a href="metas.html" class="btn btn-secondary" style="justify-content:center">🎯 Ver mis metas</a>
+          <a href="notas.html" class="btn btn-secondary" style="justify-content:center">📝 Mis notas</a>
+        </div>
+      </div>
+
+      <!-- Leaderboard -->
+      <div class="card">
+        <h3 style="margin-bottom:1rem;font-size:0.9rem;color:var(--text-m);text-transform:uppercase;letter-spacing:1px">🏆 Top estudiantes</h3>
+        <div id="leaderboard">
+          <div class="empty-state" style="padding:1rem"><span>⏳</span><p>Cargando...</p></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/dashboard.js"></script>
+<script>
+  // Actualizar nombre del héroe
+  const u = getUser();
+  if (u) document.getElementById('dash-nombre').textContent = u.nombre;
+</script>
+</body>
+</html>

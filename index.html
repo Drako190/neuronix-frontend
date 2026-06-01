@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neuronix — Domina tus hábitos estudiantiles</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a class="nav-brand" href="index.html">Neuro<span>nix</span></a>
+  <div class="nav-links">
+    <a href="#features">Funciones</a>
+    <a href="#como-funciona">Cómo funciona</a>
+  </div>
+  <div style="display:flex;gap:0.75rem">
+    <a href="pages/login.html" class="btn btn-secondary">Iniciar sesión</a>
+    <a href="pages/register.html" class="btn btn-primary">Comenzar gratis</a>
+  </div>
+</nav>
+
+<div id="toast-container"></div>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">🧠 Plataforma de hábitos estudiantiles #1</div>
+  <h1>
+    Construye la mente<br>
+    <span class="grad">que siempre quisiste</span>
+  </h1>
+  <p>Neuronix te ayuda a crear, mantener y medir hábitos de estudio poderosos. Pomodoro integrado, metas, notas, rachas y más.</p>
+  <div class="hero-cta">
+    <a href="pages/register.html" class="btn btn-primary" style="font-size:1rem;padding:0.8rem 2rem">🚀 Empezar gratis</a>
+    <a href="pages/login.html" class="btn btn-secondary" style="font-size:1rem;padding:0.8rem 2rem">Iniciar sesión</a>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features" class="page-wrapper">
+  <h2 class="section-title" style="text-align:center">Todo lo que necesitas para <span class="accent">estudiar mejor</span></h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🔥</div>
+      <h3>Rachas & Puntos</h3>
+      <p>Mantén rachas diarias, gana puntos y sube de nivel. La gamificación hace que estudiar sea adictivo.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🍅</div>
+      <h3>Timer Pomodoro</h3>
+      <p>Técnica Pomodoro integrada con sesiones personalizables. Registra automáticamente tu tiempo de enfoque.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎯</div>
+      <h3>Metas con progreso</h3>
+      <p>Define objetivos académicos, asígnales prioridad y sigue tu avance con barras de progreso visuales.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📝</div>
+      <h3>Notas rápidas</h3>
+      <p>Captura ideas, resúmenes y apuntes organizados por materia con etiquetas y notas fijadas.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Estadísticas reales</h3>
+      <p>Gráficas semanales, hábitos completados, minutos estudiados y más. Conoce tus patrones.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏆</div>
+      <h3>Leaderboard</h3>
+      <p>Compite con otros estudiantes, desbloquea logros y demuestra tu constancia.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Cómo funciona -->
+<section id="como-funciona" class="page-wrapper" style="padding-top:0">
+  <div class="card" style="max-width:700px;margin:0 auto;text-align:center;padding:3rem">
+    <h2 class="section-title">Empieza en <span class="accent">3 pasos</span></h2>
+    <div style="display:flex;flex-direction:column;gap:1.5rem;margin-top:1.5rem">
+      <div style="display:flex;align-items:center;gap:1rem;text-align:left">
+        <span style="font-size:2rem;background:rgba(108,99,255,0.15);width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</span>
+        <div><strong>Crea tu cuenta gratis</strong><br><small style="color:var(--text-m)">Regístrate en segundos, sin tarjeta de crédito.</small></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:1rem;text-align:left">
+        <span style="font-size:2rem;background:rgba(0,229,255,0.1);width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</span>
+        <div><strong>Elige tus hábitos</strong><br><small style="color:var(--text-m)">Selecciona del catálogo o crea los tuyos.</small></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:1rem;text-align:left">
+        <span style="font-size:2rem;background:rgba(184,255,0,0.1);width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</span>
+        <div><strong>Marca tu progreso diario</strong><br><small style="color:var(--text-m)">Completa hábitos, gana puntos y mantén la racha.</small></div>
+      </div>
+    </div>
+    <a href="pages/register.html" class="btn btn-lime" style="margin-top:2rem;font-size:1rem;padding:0.8rem 2.5rem">✨ Crear cuenta gratis</a>
+  </div>
+</section>
+
+<footer style="text-align:center;padding:2rem;color:var(--text-s);font-size:0.8rem;border-top:1px solid var(--border2);margin-top:4rem">
+  © 2025 Neuronix — Plataforma de hábitos estudiantiles
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>

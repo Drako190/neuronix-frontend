@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notas — Neuronix</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="nav-brand" href="dashboard.html">Neuro<span>nix</span></a>
+  <div class="nav-links">
+    <a href="dashboard.html">📊 Dashboard</a>
+    <a href="habitos.html">🔥 Hábitos</a>
+    <a href="pomodoro.html">🍅 Pomodoro</a>
+    <a href="metas.html">🎯 Metas</a>
+    <a href="notas.html" class="active">📝 Notas</a>
+    <a href="perfil.html">👤 Perfil</a>
+  </div>
+  <div class="nav-user">
+    <div class="user-info"><strong id="user-nombre">—</strong></div>
+    <button id="btn-logout" class="btn-logout">Salir</button>
+  </div>
+</nav>
+
+<div id="toast-container"></div>
+
+<!-- Modal nota -->
+<div id="modal-nota" class="modal-overlay">
+  <div class="modal" style="max-width:560px">
+    <h2 id="modal-nota-titulo">📝 Nueva nota</h2>
+    <form id="form-nota">
+      <input type="hidden" id="nota-id" />
+      <div class="form-group">
+        <label>Título *</label>
+        <input id="nota-titulo" type="text" class="form-control" placeholder="Ej: Resumen Capítulo 3" required />
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="form-group">
+          <label>Materia</label>
+          <input id="nota-materia" type="text" class="form-control" placeholder="Ej: Biología" />
+        </div>
+        <div class="form-group">
+          <label>Etiquetas (separadas por coma)</label>
+          <input id="nota-tags" type="text" class="form-control" placeholder="examen, urgente" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Contenido</label>
+        <textarea id="nota-contenido" class="form-control" rows="8" placeholder="Escribe aquí tu nota..."></textarea>
+      </div>
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem">
+        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.9rem">
+          <input type="checkbox" id="nota-fijada" style="accent-color:var(--purple)" />
+          📌 Fijar nota
+        </label>
+      </div>
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end">
+        <button type="button" id="btn-cerrar-nota" class="btn btn-secondary">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="page-wrapper">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+    <div>
+      <h1 class="page-title">Mis <span style="color:var(--cyan)">Notas</span></h1>
+      <p class="page-subtitle" style="margin:0">Organiza tus apuntes y resúmenes de estudio.</p>
+    </div>
+    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+      <input type="text" id="search-notas" class="search-input" placeholder="Buscar nota..." />
+      <button id="btn-nueva-nota" class="btn btn-primary">+ Nueva nota</button>
+    </div>
+  </div>
+
+  <div id="notas-container" class="notes-grid">
+    <div class="empty-state"><span>⏳</span><p>Cargando notas...</p></div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/auth.js"></script>
+<script>
+let notaEditando = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!isLoggedIn()) return window.location.href = '/index.html';
+  const user = getUser();
+  document.getElementById('user-nombre').textContent = user?.nombre || '';
+
+  await cargarNotas();
+
+  document.getElementById('btn-nueva-nota').addEventListener('click', () => {
+    notaEditando = null;
+    document.getElementById('modal-nota-titulo').textContent = '📝 Nueva nota';
+    document.getElementById('form-nota').reset();
+    document.getElementById('modal-nota').classList.add('open');
+  });
+  document.getElementById('btn-cerrar-nota').addEventListener('click', () => {
+    document.getElementById('modal-nota').classList.remove('open');
+  });
+  document.getElementById('form-nota').addEventListener('submit', guardarNota);
+  document.getElementById('search-notas').addEventListener('input', (e) => {
+    cargarNotas(e.target.value);
+  });
+});
+
+async function cargarNotas(q = '') {
+  try {
+    const url = q ? `/notes?q=${encodeURIComponent(q)}` : '/notes';
+    const { notas } = await apiFetch(url);
+    renderNotas(notas);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function renderNotas(notas) {
+  const c = document.getElementById('notas-container');
+  if (!notas.length) {
+    c.innerHTML = `<div class="empty-state"><span>📭</span><p>No tienes notas. ¡Crea la primera!</p></div>`;
+    return;
+  }
+  c.innerHTML = notas.map(n => {
+    const tags = Array.isArray(n.etiquetas) ? n.etiquetas : [];
+    return `
+    <div class="note-card ${n.fijada ? 'fijada' : ''}" onclick="editarNota(${JSON.stringify(n).replace(/"/g,'&quot;')})">
+      <h4>${n.titulo}</h4>
+      ${n.contenido ? `<p>${n.contenido}</p>` : ''}
+      <div class="note-meta">
+        ${n.materia ? `<span class="note-materia">${n.materia}</span>` : ''}
+        ${tags.map(t => `<span class="note-tag">${t}</span>`).join('')}
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:0.75rem">
+        <button onclick="event.stopPropagation();eliminarNota('${n.id}')"
+          style="background:none;border:none;cursor:pointer;font-size:0.85rem;color:var(--text-s);padding:0.2rem 0.4rem"
+          title="Eliminar">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function editarNota(nota) {
+  notaEditando = nota.id;
+  document.getElementById('modal-nota-titulo').textContent = '✏️ Editar nota';
+  document.getElementById('nota-titulo').value = nota.titulo || '';
+  document.getElementById('nota-materia').value = nota.materia || '';
+  document.getElementById('nota-contenido').value = nota.contenido || '';
+  document.getElementById('nota-fijada').checked = nota.fijada || false;
+  const tags = Array.isArray(nota.etiquetas) ? nota.etiquetas.join(', ') : '';
+  document.getElementById('nota-tags').value = tags;
+  document.getElementById('modal-nota').classList.add('open');
+}
+
+async function guardarNota(e) {
+  e.preventDefault();
+  const tagsRaw = document.getElementById('nota-tags').value;
+  const etiquetas = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+  const body = {
+    titulo: document.getElementById('nota-titulo').value,
+    materia: document.getElementById('nota-materia').value,
+    contenido: document.getElementById('nota-contenido').value,
+    fijada: document.getElementById('nota-fijada').checked,
+    etiquetas,
+  };
+  try {
+    if (notaEditando) {
+      await apiFetch(`/notes/${notaEditando}`, { method: 'PUT', body: JSON.stringify(body) });
+      toast('✅ Nota actualizada');
+    } else {
+      await apiFetch('/notes', { method: 'POST', body: JSON.stringify(body) });
+      toast('✅ Nota creada');
+    }
+    document.getElementById('modal-nota').classList.remove('open');
+    await cargarNotas();
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+async function eliminarNota(id) {
+  if (!confirm('¿Eliminar esta nota?')) return;
+  try {
+    await apiFetch(`/notes/${id}`, { method: 'DELETE' });
+    toast('🗑 Nota eliminada');
+    await cargarNotas();
+  } catch (e) { toast(e.message, 'error'); }
+}
+</script>
+</body>
+</html>

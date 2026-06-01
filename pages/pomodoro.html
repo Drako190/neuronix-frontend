@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pomodoro — Neuronix</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    .pomo-layout { display:grid; grid-template-columns:1fr 320px; gap:2rem; align-items:start; }
+    .pomo-stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.5rem; }
+    @media(max-width:768px){ .pomo-layout{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="nav-brand" href="dashboard.html">Neuro<span>nix</span></a>
+  <div class="nav-links">
+    <a href="dashboard.html">📊 Dashboard</a>
+    <a href="habitos.html">🔥 Hábitos</a>
+    <a href="pomodoro.html" class="active">🍅 Pomodoro</a>
+    <a href="metas.html">🎯 Metas</a>
+    <a href="notas.html">📝 Notas</a>
+    <a href="perfil.html">👤 Perfil</a>
+  </div>
+  <div class="nav-user">
+    <div class="user-info">
+      <strong id="user-nombre">—</strong>
+    </div>
+    <button id="btn-logout" class="btn-logout">Salir</button>
+  </div>
+</nav>
+
+<div id="toast-container"></div>
+
+<div class="page-wrapper">
+  <h1 class="page-title">Timer <span style="color:var(--cyan)">Pomodoro</span></h1>
+  <p class="page-subtitle">Sesiones de enfoque profundo. Cada 🍅 cuenta.</p>
+
+  <div class="pomo-layout">
+    <!-- Timer principal -->
+    <div class="card" style="display:flex;flex-direction:column;align-items:center;padding:3rem 2rem">
+
+      <div id="timer-mode" style="font-size:0.95rem;color:var(--text-m);margin-bottom:1.5rem;font-weight:600">
+        🍅 Enfoque
+      </div>
+
+      <!-- SVG circular timer -->
+      <div class="timer-svg" id="timer-circle">
+        <svg width="220" height="220" viewBox="0 0 220 220">
+          <defs>
+            <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#6C63FF" />
+              <stop offset="100%" style="stop-color:#00E5FF" />
+            </linearGradient>
+          </defs>
+          <circle class="progress-ring__bg" cx="110" cy="110" r="95" stroke-width="12" />
+          <circle class="progress-ring__circle" cx="110" cy="110" r="95" stroke-width="12"
+            stroke-dasharray="596.9 596.9" stroke-dashoffset="0" />
+        </svg>
+        <div class="timer-text">
+          <div id="timer-display">25:00</div>
+          <div id="timer-mode-mini" style="font-size:0.75rem;color:var(--text-m);text-align:center">Enfoque</div>
+        </div>
+      </div>
+
+      <!-- Controles -->
+      <div class="timer-controls" style="margin-top:2rem">
+        <button id="btn-start" class="btn btn-primary" style="min-width:140px;justify-content:center">▶ Iniciar</button>
+        <button id="btn-reset" class="btn btn-secondary">↺ Reset</button>
+        <button id="btn-skip" class="btn btn-secondary">⏭ Saltar</button>
+      </div>
+
+      <!-- Materia -->
+      <div style="margin-top:1.5rem;width:100%;max-width:320px">
+        <label style="font-size:0.8rem;color:var(--text-m);display:block;margin-bottom:0.4rem">Materia (opcional)</label>
+        <input id="materia-input" type="text" class="form-control" placeholder="Ej: Cálculo, Historia..." />
+      </div>
+
+      <!-- Ciclos completados -->
+      <div style="margin-top:1.5rem;text-align:center">
+        <span style="font-size:0.85rem;color:var(--text-m)">Ciclos completados hoy:</span>
+        <span id="ciclos-count" style="font-family:var(--font-mono);color:var(--lime);font-size:1.5rem;font-weight:700;display:block">0</span>
+      </div>
+    </div>
+
+    <!-- Panel lateral -->
+    <div style="display:flex;flex-direction:column;gap:1.5rem">
+
+      <!-- Configuración -->
+      <div class="card">
+        <h3 style="margin-bottom:1rem;font-size:0.9rem;color:var(--text-m);text-transform:uppercase;letter-spacing:1px">⚙️ Configuración</h3>
+        <div class="form-group">
+          <label>Duración enfoque (min)</label>
+          <select id="dur-trabajo" class="form-control">
+            <option value="15">15 min</option>
+            <option value="20">20 min</option>
+            <option value="25" selected>25 min</option>
+            <option value="30">30 min</option>
+            <option value="45">45 min</option>
+            <option value="50">50 min</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Duración descanso (min)</label>
+          <select id="dur-descanso" class="form-control">
+            <option value="3">3 min</option>
+            <option value="5" selected>5 min</option>
+            <option value="10">10 min</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Estadísticas Pomodoro -->
+      <div class="card">
+        <h3 style="margin-bottom:1rem;font-size:0.9rem;color:var(--text-m);text-transform:uppercase;letter-spacing:1px">📊 Esta semana</h3>
+        <div class="pomo-stats-grid">
+          <div style="text-align:center;padding:1rem;background:var(--bg3);border-radius:var(--radius-s)">
+            <div style="font-family:var(--font-mono);font-size:1.75rem;font-weight:700;color:var(--cyan)" id="total-pomodoros">0</div>
+            <div style="font-size:0.75rem;color:var(--text-m)">🍅 Pomodoros</div>
+          </div>
+          <div style="text-align:center;padding:1rem;background:var(--bg3);border-radius:var(--radius-s)">
+            <div style="font-family:var(--font-mono);font-size:1.75rem;font-weight:700;color:var(--lime)" id="minutos-estudio">0</div>
+            <div style="font-size:0.75rem;color:var(--text-m)">⏱ Minutos</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tip del día -->
+      <div class="card" style="border-color:rgba(0,229,255,0.2)">
+        <h3 style="margin-bottom:0.75rem;font-size:0.85rem;color:var(--cyan)">💡 Consejo</h3>
+        <p style="font-size:0.82rem;color:var(--text-m)" id="tip-dia">
+          Después de 4 pomodoros, toma un descanso largo de 15-20 minutos. Tu cerebro lo necesita para consolidar lo aprendido.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/pomodoro.js"></script>
+</body>
+</html>

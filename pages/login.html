@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iniciar sesión — Neuronix</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+<div id="toast-container"></div>
+
+<div class="auth-page">
+  <div class="auth-box">
+    <div class="auth-logo">🧠 Neuronix</div>
+    <p class="auth-subtitle">Bienvenido de vuelta. Sigue construyendo tu mente.</p>
+
+    <form id="form-login">
+      <div class="form-group">
+        <label for="email">Correo electrónico</label>
+        <input id="email" type="email" class="form-control" placeholder="tu@email.com" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input id="password" type="password" class="form-control" placeholder="••••••••" required />
+      </div>
+      <div style="text-align:right;margin-bottom:1.25rem">
+        <a href="forgot-password.html" style="font-size:0.82rem">¿Olvidaste tu contraseña?</a>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">
+        Iniciar sesión
+      </button>
+    </form>
+
+    <p class="auth-switch">
+      ¿No tienes cuenta? <a href="register.html">Regístrate gratis</a>
+    </p>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/auth.js"></script>
+</body>
+</html>
