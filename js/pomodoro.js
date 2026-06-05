@@ -1,9 +1,9 @@
-// js/pomodoro.js — Neuronix Timer
+// js/pomodoro.js — Neuronix Timer (con config por usuario)
 let timerInterval = null;
 let segundosRestantes = 25 * 60;
 let timerActivo = false;
 let ciclosCompletados = 0;
-let modoActual = 'trabajo'; // 'trabajo' | 'descanso'
+let modoActual = 'trabajo';
 
 const CONFIG_TIMER = {
   trabajo: 25,
@@ -11,29 +11,79 @@ const CONFIG_TIMER = {
   descansoLargo: 15,
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   if (!isLoggedIn()) return window.location.href = '/index.html';
 
   const user = getUser();
   document.getElementById('user-nombre').textContent = user?.nombre || '';
 
+  // ── NUEVO: cargar configuración guardada del usuario ──
+  try {
+    const { config } = await apiFetch('/config');
+
+    // Sobreescribir los valores por defecto con los del usuario
+    CONFIG_TIMER.trabajo  = config.config_pomodoro_trabajo  || 25;
+    CONFIG_TIMER.descanso = config.config_pomodoro_descanso || 5;
+
+    // Actualizar los selects de la pantalla con esos valores
+    const selectTrabajo  = document.getElementById('dur-trabajo');
+    const selectDescanso = document.getElementById('dur-descanso');
+
+    if (selectTrabajo)  selectTrabajo.value  = CONFIG_TIMER.trabajo;
+    if (selectDescanso) selectDescanso.value = CONFIG_TIMER.descanso;
+
+  } catch (e) {
+    console.error('No se pudo cargar config del usuario:', e);
+    // Si falla, se quedan los valores por defecto (25 y 5)
+  }
+
+  // Inicializar el timer con los minutos cargados
+  segundosRestantes = CONFIG_TIMER.trabajo * 60;
   actualizarDisplay();
 
   document.getElementById('btn-start')?.addEventListener('click', toggleTimer);
   document.getElementById('btn-reset')?.addEventListener('click', resetTimer);
   document.getElementById('btn-skip')?.addEventListener('click', saltarFase);
 
-  // Configuración de tiempos
-  document.getElementById('dur-trabajo')?.addEventListener('change', (e) => {
+  // ── NUEVO: guardar en el servidor cuando el usuario cambia los selects ──
+  document.getElementById('dur-trabajo')?.addEventListener('change', async (e) => {
     CONFIG_TIMER.trabajo = parseInt(e.target.value);
     if (modoActual === 'trabajo') resetTimer();
-  });
-  document.getElementById('dur-descanso')?.addEventListener('change', (e) => {
-    CONFIG_TIMER.descanso = parseInt(e.target.value);
-    if (modoActual === 'descanso') resetTimer();
+
+    // Guardar el nuevo valor en Supabase
+    try {
+      await apiFetch('/config', {
+        method: 'PUT',
+        body: JSON.stringify({
+          config_pomodoro_trabajo:  CONFIG_TIMER.trabajo,
+          config_pomodoro_descanso: CONFIG_TIMER.descanso,
+        })
+      });
+      toast('⚙️ Tiempo guardado');
+    } catch (e) {
+      console.error('Error guardando config:', e);
+    }
   });
 
-  // Cargar stats
+  document.getElementById('dur-descanso')?.addEventListener('change', async (e) => {
+    CONFIG_TIMER.descanso = parseInt(e.target.value);
+    if (modoActual === 'descanso') resetTimer();
+
+    // Guardar el nuevo valor en Supabase
+    try {
+      await apiFetch('/config', {
+        method: 'PUT',
+        body: JSON.stringify({
+          config_pomodoro_trabajo:  CONFIG_TIMER.trabajo,
+          config_pomodoro_descanso: CONFIG_TIMER.descanso,
+        })
+      });
+      toast('⚙️ Tiempo guardado');
+    } catch (e) {
+      console.error('Error guardando config:', e);
+    }
+  });
+
   cargarStats();
 });
 
@@ -85,29 +135,46 @@ function saltarFase() {
 function completarFase(guardar = true) {
   clearInterval(timerInterval);
   timerActivo = false;
-
-  // Notificación sonido / visual
   playNotification();
 
   if (modoActual === 'trabajo') {
+    // ── Terminó un Pomodoro de trabajo ──
     ciclosCompletados++;
     document.getElementById('ciclos-count').textContent = ciclosCompletados;
-    toast(`🍅 ¡Pomodoro ${ciclosCompletados} completado! Toma un descanso.`);
+    toast(`🍅 Pomodoro ${ciclosCompletados} completado! Toma un descanso.`);
 
     if (guardar) guardarSesion();
 
-    // Cambiar a descanso
+    // Cambiar a descanso (cada 4 ciclos es descanso largo)
     modoActual = ciclosCompletados % 4 === 0 ? 'descansoLargo' : 'descanso';
-  } else {
-    toast('💪 ¡Descanso terminado! A trabajar.');
-    modoActual = 'trabajo';
-  }
 
-  segundosRestantes = CONFIG_TIMER[modoActual] * 60;
-  document.getElementById('btn-start').textContent = '▶ Iniciar';
-  document.getElementById('timer-mode').textContent = modoActual === 'trabajo' ? '🍅 Enfoque' : '☕ Descanso';
-  document.getElementById('timer-circle')?.classList.remove('running');
-  actualizarDisplay();
+    // Preparar el timer para el descanso
+    segundosRestantes = CONFIG_TIMER[modoActual] * 60;
+    document.getElementById('btn-start').textContent = '▶ Iniciar';
+    document.getElementById('timer-mode').textContent = '☕ Descanso';
+    document.getElementById('timer-circle')?.classList.remove('running');
+    actualizarDisplay();
+
+  } else {
+    // ── Terminó un descanso ──
+    // Se reinicia automáticamente
+
+    toast('⏰ Descanso terminado! Reiniciando 5 minutos...');
+
+    modoActual = 'descanso';
+    segundosRestantes = CONFIG_TIMER.descanso * 60;
+
+    document.getElementById('timer-mode').textContent = '☕ Descanso';
+    document.getElementById('timer-circle')?.classList.remove('running');
+
+    actualizarDisplay();
+
+    setTimeout(() => {
+      iniciarTimer();
+    }, 1000);
+
+    return;
+  }
 }
 
 function actualizarDisplay() {

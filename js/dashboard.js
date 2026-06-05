@@ -1,6 +1,7 @@
 // js/dashboard.js — Neuronix
 document.addEventListener('DOMContentLoaded', async () => {
   if (!isLoggedIn()) return window.location.href = '/index.html';
+  cargarTablaPorcentajes();
 
   const user = getUser();
   document.getElementById('user-nombre').textContent = user?.nombre || '';
@@ -116,4 +117,91 @@ function renderLeaderboard(ranking) {
       </div>
       <span class="rank-pts">${u.puntos_totales} pts</span>
     </div>`).join('');
+}
+
+async function cargarTablaPorcentajes() {
+  try {
+    const { logs } = await apiFetch('/habits/logs/semana');
+    const { habitos } = await apiFetch('/habits/mis-habitos');
+    const el = document.getElementById('tabla-porcentajes');
+    if (!habitos.length) {
+      el.innerHTML = `<div class="empty-state"><span>📊</span><p>Agrega habitos para ver tu progreso</p></div>`;
+      return;
+    }
+
+    // Contar completados por hábito en los últimos 7 días
+    const conteo = {};
+    logs.forEach(l => {
+      if (l.completado) {
+        conteo[l.habito_id] = (conteo[l.habito_id] || 0) + 1;
+      }
+    });
+
+    const colores = {
+      100: { fill: '00B894', badge: 'rgba(0,184,148,0.2)', color: '00B894', label: 'Excelente' },
+      75:  { fill: '6C63FF', badge: 'rgba(108,99,255,0.2)', color: '9B94FF', label: 'Muy bien' },
+      50:  { fill: '00E5FF', badge: 'rgba(0,229,255,0.15)', color: '00E5FF', label: 'Regular' },
+      25:  { fill: 'FDCB6E', badge: 'rgba(253,203,110,0.2)', color: 'FDCB6E', label: 'Bajo' },
+      0:   { fill: 'FF6B6B', badge: 'rgba(255,107,107,0.15)', color: 'FF6B6B', label: 'Sin inicio' },
+    };
+
+    const getColor = pct => {
+      if (pct >= 100) return colores[100];
+      if (pct >= 75)  return colores[75];
+      if (pct >= 50)  return colores[50];
+      if (pct >= 25)  return colores[25];
+      return colores[0];
+    };
+
+    const filas = habitos.map(uh => {
+      const h = uh.habits;
+      // Días esperados en la semana según frecuencia
+      const esperados = h.frecuencia === 'diario' ? 7 : (h.dias_semana?.length || 1);
+      const completados = conteo[h.id] || 0;
+      const pct = Math.min(Math.round((completados / esperados) * 100), 100);
+      const col = getColor(pct);
+      return { h, completados, esperados, pct, col };
+    }).sort((a, b) => b.pct - a.pct);
+
+    el.innerHTML = `
+    <table class="tabla-progreso">
+      <thead>
+        <tr>
+          <th>Habito</th>
+          <th>Categoria</th>
+          <th style="width:220px">Progreso semanal</th>
+          <th style="text-align:center">Dias</th>
+          <th style="text-align:center">Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${filas.map(({ h, completados, esperados, pct, col }) => `
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:0.6rem">
+              <span style="font-size:1.2rem">${h.icono}</span>
+              <strong style="font-size:0.88rem">${h.nombre}</strong>
+            </div>
+          </td>
+          <td style="text-transform:capitalize;color:var(--text-m)">${h.categoria}</td>
+          <td>
+            <div class="pct-bar-wrap">
+              <div class="pct-bar">
+                <div class="pct-fill" style="width:${pct}%;background:#${col.fill}"></div>
+              </div>
+              <span class="pct-num" style="color:#${col.color}">${pct}%</span>
+            </div>
+          </td>
+          <td style="text-align:center;font-family:var(--font-mono);font-size:0.85rem">
+            ${completados}/${esperados}
+          </td>
+          <td style="text-align:center">
+            <span class="pct-badge" style="background:${col.badge};color:#${col.color}">
+              ${col.label}
+            </span>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+  } catch (e) { console.error(e); }
 }

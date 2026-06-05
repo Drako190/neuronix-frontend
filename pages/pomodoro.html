@@ -9,6 +9,92 @@
     .pomo-layout { display:grid; grid-template-columns:1fr 320px; gap:2rem; align-items:start; }
     .pomo-stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.5rem; }
     @media(max-width:768px){ .pomo-layout{grid-template-columns:1fr} }
+
+    /* ── Cronómetros múltiples ── */
+    .crono-card {
+      background: var(--card2);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .crono-card:hover { border-color: var(--border); }
+    .crono-card.activo {
+      border-color: var(--purple);
+      box-shadow: 0 0 20px rgba(108,99,255,0.15);
+    }
+    .crono-card.completado { border-color: var(--cyan); opacity: 0.75; }
+
+    .crono-nombre {
+      width: 100%; background: none; border: none;
+      border-bottom: 1px solid var(--border2);
+      color: var(--text); font-family: var(--font-body);
+      font-size: 0.88rem; font-weight: 600;
+      padding: 0.2rem 0; margin-bottom: 0.75rem;
+      outline: none; transition: border-color 0.2s;
+    }
+    .crono-nombre:focus { border-color: var(--purple); }
+    .crono-nombre:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .crono-display {
+      font-family: var(--font-mono); font-size: 2rem;
+      font-weight: 700; color: var(--text);
+      text-align: center; margin: 0.5rem 0;
+      letter-spacing: 2px;
+    }
+    .crono-card.activo    .crono-display { color: var(--purple-l); }
+    .crono-card.completado .crono-display { color: var(--cyan); }
+
+    .crono-progreso {
+      height: 4px; background: var(--bg3);
+      border-radius: 2px; margin-bottom: 0.75rem; overflow: hidden;
+    }
+    .crono-progreso-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--purple), var(--cyan));
+      border-radius: 2px; transition: width 1s linear;
+    }
+
+    .crono-config {
+      display: flex; align-items: center;
+      gap: 0.5rem; margin-bottom: 0.75rem;
+    }
+    .crono-config label { font-size: 0.75rem; color: var(--text-m); }
+    .crono-config input[type=number] {
+      width: 58px; background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-s); color: var(--text);
+      padding: 0.3rem 0.5rem; font-size: 0.85rem;
+      font-family: var(--font-mono); text-align: center;
+      transition: border-color 0.2s;
+    }
+    .crono-config input[type=number]:focus {
+      outline: none; border-color: var(--purple);
+    }
+    .crono-config input[type=number]:disabled {
+      opacity: 0.5; cursor: not-allowed;
+    }
+    .crono-estado {
+      margin-left: auto; font-size: 0.72rem;
+      color: var(--text-s); font-family: var(--font-mono);
+    }
+
+    .crono-btns { display: flex; gap: 0.4rem; }
+    .crono-btns button {
+      flex: 1; padding: 0.4rem 0.2rem;
+      border-radius: var(--radius-s);
+      border: 1px solid var(--border2);
+      background: var(--bg3); color: var(--text);
+      cursor: pointer; font-size: 0.8rem;
+      font-family: var(--font-body); transition: all 0.2s;
+    }
+    .crono-btns button:disabled {
+      opacity: 0.4; cursor: not-allowed;
+    }
+    .btn-crono-play { border-color: var(--purple) !important; color: var(--purple-l) !important; }
+    .btn-crono-play:hover:not(:disabled) { background: rgba(108,99,255,0.2) !important; }
+    .btn-crono-reset:hover { border-color: var(--cyan) !important; color: var(--cyan) !important; }
+    .btn-crono-del:hover   { border-color: var(--pink) !important; color: var(--pink) !important; }
   </style>
 </head>
 <body>
@@ -33,19 +119,22 @@
 
 <div id="toast-container"></div>
 
+<!-- ── Timer principal ── -->
 <div class="page-wrapper">
   <h1 class="page-title">Timer <span style="color:var(--cyan)">Pomodoro</span></h1>
   <p class="page-subtitle">Sesiones de enfoque profundo. Cada 🍅 cuenta.</p>
 
   <div class="pomo-layout">
-    <!-- Timer principal -->
+
+    <!-- Timer circular -->
     <div class="card" style="display:flex;flex-direction:column;align-items:center;padding:3rem 2rem">
 
-      <div id="timer-mode" style="font-size:0.95rem;color:var(--text-m);margin-bottom:1.5rem;font-weight:600">
+      <div id="timer-mode"
+           style="font-size:0.95rem;color:var(--text-m);margin-bottom:1.5rem;font-weight:600">
         🍅 Enfoque
       </div>
 
-      <!-- SVG circular timer -->
+      <!-- SVG circular -->
       <div class="timer-svg" id="timer-circle">
         <svg width="220" height="220" viewBox="0 0 220 220">
           <defs>
@@ -54,33 +143,51 @@
               <stop offset="100%" style="stop-color:#00E5FF" />
             </linearGradient>
           </defs>
-          <circle class="progress-ring__bg" cx="110" cy="110" r="95" stroke-width="12" />
-          <circle class="progress-ring__circle" cx="110" cy="110" r="95" stroke-width="12"
-            stroke-dasharray="596.9 596.9" stroke-dashoffset="0" />
+          <circle class="progress-ring__bg"
+                  cx="110" cy="110" r="95" stroke-width="12" />
+          <circle class="progress-ring__circle"
+                  cx="110" cy="110" r="95" stroke-width="12"
+                  stroke-dasharray="596.9 596.9" stroke-dashoffset="0" />
         </svg>
         <div class="timer-text">
           <div id="timer-display">25:00</div>
-          <div id="timer-mode-mini" style="font-size:0.75rem;color:var(--text-m);text-align:center">Enfoque</div>
+          <div id="timer-mode-mini"
+               style="font-size:0.75rem;color:var(--text-m);text-align:center">
+            Enfoque
+          </div>
         </div>
       </div>
 
       <!-- Controles -->
       <div class="timer-controls" style="margin-top:2rem">
-        <button id="btn-start" class="btn btn-primary" style="min-width:140px;justify-content:center">▶ Iniciar</button>
+        <button id="btn-start" class="btn btn-primary"
+                style="min-width:140px;justify-content:center">
+          ▶ Iniciar
+        </button>
         <button id="btn-reset" class="btn btn-secondary">↺ Reset</button>
-        <button id="btn-skip" class="btn btn-secondary">⏭ Saltar</button>
+        <button id="btn-skip"  class="btn btn-secondary">⏭ Saltar</button>
       </div>
 
       <!-- Materia -->
       <div style="margin-top:1.5rem;width:100%;max-width:320px">
-        <label style="font-size:0.8rem;color:var(--text-m);display:block;margin-bottom:0.4rem">Materia (opcional)</label>
-        <input id="materia-input" type="text" class="form-control" placeholder="Ej: Cálculo, Historia..." />
+        <label style="font-size:0.8rem;color:var(--text-m);
+                      display:block;margin-bottom:0.4rem">
+          Materia (opcional)
+        </label>
+        <input id="materia-input" type="text" class="form-control"
+               placeholder="Ej: Cálculo, Historia..." />
       </div>
 
-      <!-- Ciclos completados -->
+      <!-- Ciclos -->
       <div style="margin-top:1.5rem;text-align:center">
-        <span style="font-size:0.85rem;color:var(--text-m)">Ciclos completados hoy:</span>
-        <span id="ciclos-count" style="font-family:var(--font-mono);color:var(--lime);font-size:1.5rem;font-weight:700;display:block">0</span>
+        <span style="font-size:0.85rem;color:var(--text-m)">
+          Ciclos completados hoy:
+        </span>
+        <span id="ciclos-count"
+              style="font-family:var(--font-mono);color:var(--lime);
+                     font-size:1.5rem;font-weight:700;display:block">
+          0
+        </span>
       </div>
     </div>
 
@@ -89,7 +196,10 @@
 
       <!-- Configuración -->
       <div class="card">
-        <h3 style="margin-bottom:1rem;font-size:0.9rem;color:var(--text-m);text-transform:uppercase;letter-spacing:1px">⚙️ Configuración</h3>
+        <h3 style="margin-bottom:1rem;font-size:0.9rem;color:var(--text-m);
+                   text-transform:uppercase;letter-spacing:1px">
+          ⚙️ Configuración
+        </h3>
         <div class="form-group">
           <label>Duración enfoque (min)</label>
           <select id="dur-trabajo" class="form-control">
@@ -111,35 +221,346 @@
         </div>
       </div>
 
-      <!-- Estadísticas Pomodoro -->
+      <!-- Estadísticas -->
       <div class="card">
-        <h3 style="margin-bottom:1rem;font-size:0.9rem;color:var(--text-m);text-transform:uppercase;letter-spacing:1px">📊 Esta semana</h3>
+        <h3 style="margin-bottom:1rem;font-size:0.9rem;color:var(--text-m);
+                   text-transform:uppercase;letter-spacing:1px">
+          📊 Esta semana
+        </h3>
         <div class="pomo-stats-grid">
-          <div style="text-align:center;padding:1rem;background:var(--bg3);border-radius:var(--radius-s)">
-            <div style="font-family:var(--font-mono);font-size:1.75rem;font-weight:700;color:var(--cyan)" id="total-pomodoros">0</div>
+          <div style="text-align:center;padding:1rem;
+                      background:var(--bg3);border-radius:var(--radius-s)">
+            <div id="total-pomodoros"
+                 style="font-family:var(--font-mono);font-size:1.75rem;
+                        font-weight:700;color:var(--cyan)">
+              0
+            </div>
             <div style="font-size:0.75rem;color:var(--text-m)">🍅 Pomodoros</div>
           </div>
-          <div style="text-align:center;padding:1rem;background:var(--bg3);border-radius:var(--radius-s)">
-            <div style="font-family:var(--font-mono);font-size:1.75rem;font-weight:700;color:var(--lime)" id="minutos-estudio">0</div>
+          <div style="text-align:center;padding:1rem;
+                      background:var(--bg3);border-radius:var(--radius-s)">
+            <div id="minutos-estudio"
+                 style="font-family:var(--font-mono);font-size:1.75rem;
+                        font-weight:700;color:var(--lime)">
+              0
+            </div>
             <div style="font-size:0.75rem;color:var(--text-m)">⏱ Minutos</div>
           </div>
         </div>
       </div>
 
-      <!-- Tip del día -->
+      <!-- Consejo -->
       <div class="card" style="border-color:rgba(0,229,255,0.2)">
-        <h3 style="margin-bottom:0.75rem;font-size:0.85rem;color:var(--cyan)">💡 Consejo</h3>
-        <p style="font-size:0.82rem;color:var(--text-m)" id="tip-dia">
-          Después de 4 pomodoros, toma un descanso largo de 15-20 minutos. Tu cerebro lo necesita para consolidar lo aprendido.
+        <h3 style="margin-bottom:0.75rem;font-size:0.85rem;color:var(--cyan)">
+          💡 Consejo
+        </h3>
+        <p id="tip-dia" style="font-size:0.82rem;color:var(--text-m)">
+          Después de 4 pomodoros, toma un descanso largo de 15-20 minutos.
+          Tu cerebro lo necesita para consolidar lo aprendido.
         </p>
       </div>
 
     </div>
   </div>
-</div>
 
+  <!-- ══════════════════════════════════════════════════
+       Sección de 10 Cronómetros independientes
+  ══════════════════════════════════════════════════ -->
+  <div style="margin-top:2rem">
+    <div class="card">
+
+      <!-- Encabezado -->
+      <div style="display:flex;justify-content:space-between;
+                  align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:1rem">
+        <div>
+          <h2 class="section-title" style="margin:0">Mis Cronómetros</h2>
+          <p style="font-size:0.82rem;color:var(--text-m);margin-top:0.25rem">
+            Hasta 10 cronómetros independientes. Cada uno con su propio tiempo.
+          </p>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem">
+          <span id="crono-contador"
+                style="font-size:0.82rem;color:var(--text-m);
+                       font-family:var(--font-mono)">
+            0 / 10
+          </span>
+          <button onclick="agregarCronometro()"
+                  class="btn btn-secondary"
+                  style="font-size:0.82rem;padding:0.4rem 0.9rem">
+            + Nuevo cronómetro
+          </button>
+        </div>
+      </div>
+
+      <!-- Grid donde se renderizan los cronómetros -->
+      <div id="cronometros-grid"
+           style="display:grid;
+                  grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+                  gap:1rem">
+        <!-- Se llena con JavaScript -->
+        <div class="empty-state" style="grid-column:1/-1">
+          <span>⏱</span>
+          <p>Presiona "+ Nuevo cronómetro" para agregar uno</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- fin page-wrapper -->
+
+<!-- ── Scripts ── -->
 <script src="../js/config.js"></script>
 <script src="../js/auth.js"></script>
 <script src="../js/pomodoro.js"></script>
+
+<script>
+// ════════════════════════════════════════════════════════
+// CRONÓMETROS — código inline para no necesitar archivo extra
+// ════════════════════════════════════════════════════════
+
+const MAX_CRONOS = 10;
+let cronos = [];
+let intervalos = {};
+
+const NOMBRES_DEFAULT = [
+  'Matemáticas', 'Historia', 'Biología', 'Física',
+  'Inglés', 'Programación', 'Literatura', 'Química',
+  'Repaso general', 'Tarea pendiente'
+];
+
+// ── Crear objeto cronómetro ──────────────────────────
+function crearCronoObj(posicion) {
+  return {
+    id:            Date.now() + Math.random(),
+    nombre:        NOMBRES_DEFAULT[posicion] || `Cronómetro ${posicion + 1}`,
+    minutos:       25,
+    totalSegundos: 25 * 60,
+    restantes:     25 * 60,
+    activo:        false,
+    completado:    false,
+  };
+}
+
+// ── Agregar cronómetro nuevo ─────────────────────────
+function agregarCronometro() {
+  if (cronos.length >= MAX_CRONOS) {
+    toast('Máximo 10 cronómetros permitidos', 'error');
+    return;
+  }
+  cronos.push(crearCronoObj(cronos.length));
+  renderCronos();
+}
+
+// ── Dibujar todos los cronómetros ────────────────────
+function renderCronos() {
+  const grid     = document.getElementById('cronometros-grid');
+  const contador = document.getElementById('crono-contador');
+  if (!grid) return;
+
+  if (contador) contador.textContent = `${cronos.length} / ${MAX_CRONOS}`;
+
+  if (!cronos.length) {
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <span>⏱</span>
+        <p>Presiona "+ Nuevo cronómetro" para agregar uno</p>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = cronos.map((c, i) => {
+
+    const min = Math.floor(c.restantes / 60).toString().padStart(2, '0');
+    const seg = (c.restantes % 60).toString().padStart(2, '0');
+
+    const pct = c.totalSegundos > 0
+      ? Math.round(((c.totalSegundos - c.restantes) / c.totalSegundos) * 100)
+      : 0;
+
+    let clases = 'crono-card';
+    if (c.activo)     clases += ' activo';
+    if (c.completado) clases += ' completado';
+
+    let estadoTexto = '⏸ En pausa';
+    if (c.activo)     estadoTexto = '▶ Corriendo';
+    if (c.completado) estadoTexto = '✅ Completado';
+
+    const btnPlayTexto = c.activo ? '⏸ Pausar' : '▶ Iniciar';
+    const btnDisabled  = c.completado ? 'disabled' : '';
+
+    return `
+    <div class="${clases}" id="crono-card-${c.id}">
+
+      <input
+        class="crono-nombre"
+        type="text"
+        value="${c.nombre}"
+        placeholder="Nombre"
+        onchange="renombrarCrono(${i}, this.value)"
+        ${c.activo ? 'disabled' : ''}
+      />
+
+      <div class="crono-display">${min}:${seg}</div>
+
+      <div class="crono-progreso">
+        <div class="crono-progreso-fill" style="width:${pct}%"></div>
+      </div>
+
+      <div class="crono-config">
+        <label>Min:</label>
+        <input
+          type="number" min="1" max="120"
+          value="${c.minutos}"
+          onchange="cambiarTiempoCrono(${i}, this.value)"
+          ${c.activo || c.completado ? 'disabled' : ''}
+        />
+        <span class="crono-estado">${estadoTexto}</span>
+      </div>
+
+      <div class="crono-btns">
+        <button
+          class="btn-crono-play"
+          onclick="toggleCrono(${i})"
+          ${btnDisabled}>
+          ${btnPlayTexto}
+        </button>
+        <button
+          class="btn-crono-reset"
+          onclick="resetCrono(${i})"
+          title="Reiniciar">
+          ↺ Reset
+        </button>
+        <button
+          class="btn-crono-del"
+          onclick="eliminarCrono(${i})"
+          title="Eliminar">
+          🗑
+        </button>
+      </div>
+
+    </div>`;
+  }).join('');
+}
+
+// ── Iniciar o pausar ─────────────────────────────────
+function toggleCrono(i) {
+  const c = cronos[i];
+  if (c.completado) return;
+
+  if (c.activo) {
+    // Pausar
+    clearInterval(intervalos[c.id]);
+    c.activo = false;
+    renderCronos();
+
+  } else {
+    // Iniciar
+    c.activo = true;
+
+    intervalos[c.id] = setInterval(() => {
+      c.restantes--;
+
+      // Actualizar solo este cronómetro sin redibujar todo
+      actualizarDisplayCrono(c);
+
+      if (c.restantes <= 0) {
+        c.restantes  = 0;
+        c.activo     = false;
+        c.completado = true;
+        clearInterval(intervalos[c.id]);
+        playNotifCrono(c.nombre);
+        renderCronos();
+      }
+    }, 1000);
+
+    renderCronos();
+  }
+}
+
+// ── Actualizar display sin redibujar todo ────────────
+function actualizarDisplayCrono(c) {
+  const card = document.getElementById(`crono-card-${c.id}`);
+  if (!card) return;
+
+  const display = card.querySelector('.crono-display');
+  if (display) {
+    const min = Math.floor(c.restantes / 60).toString().padStart(2, '0');
+    const seg = (c.restantes % 60).toString().padStart(2, '0');
+    display.textContent = `${min}:${seg}`;
+  }
+
+  const fill = card.querySelector('.crono-progreso-fill');
+  if (fill && c.totalSegundos > 0) {
+    const pct = Math.round(
+      ((c.totalSegundos - c.restantes) / c.totalSegundos) * 100
+    );
+    fill.style.width = `${pct}%`;
+  }
+}
+
+// ── Reiniciar ────────────────────────────────────────
+function resetCrono(i) {
+  const c = cronos[i];
+  clearInterval(intervalos[c.id]);
+  c.activo     = false;
+  c.completado = false;
+  c.restantes  = c.minutos * 60;
+  renderCronos();
+}
+
+// ── Eliminar ─────────────────────────────────────────
+function eliminarCrono(i) {
+  clearInterval(intervalos[cronos[i].id]);
+  cronos.splice(i, 1);
+  renderCronos();
+  toast('🗑 Cronómetro eliminado');
+}
+
+// ── Renombrar ────────────────────────────────────────
+function renombrarCrono(i, nuevoNombre) {
+  if (nuevoNombre.trim()) {
+    cronos[i].nombre = nuevoNombre.trim();
+  }
+}
+
+// ── Cambiar tiempo ───────────────────────────────────
+function cambiarTiempoCrono(i, valor) {
+  const min = Math.max(1, Math.min(120, parseInt(valor) || 25));
+  cronos[i].minutos       = min;
+  cronos[i].restantes     = min * 60;
+  cronos[i].totalSegundos = min * 60;
+  cronos[i].completado    = false;
+  renderCronos();
+}
+
+// ── Sonido al completar ──────────────────────────────
+function playNotifCrono(nombre) {
+  toast(`⏰ "${nombre}" completado!`);
+  try {
+    const ctx  = new AudioContext();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(523, ctx.currentTime);
+    osc.frequency.setValueAtTime(659, ctx.currentTime + 0.18);
+    osc.frequency.setValueAtTime(784, ctx.currentTime + 0.36);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.9);
+  } catch (e) {}
+}
+
+// ── Inicializar con 3 cronómetros por defecto ────────
+document.addEventListener('DOMContentLoaded', () => {
+  for (let i = 0; i < 3; i++) {
+    cronos.push(crearCronoObj(i));
+  }
+  renderCronos();
+});
+</script>
+
 </body>
 </html>
